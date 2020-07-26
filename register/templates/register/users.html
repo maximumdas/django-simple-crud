@@ -1,0 +1,226 @@
+{% extends 'register/base.html' %}
+
+{% block content %}
+
+<div class="col-6">
+    <div class="card">
+        <h4 class="card-header text-center">Users</h4>
+        <div class="card-block">
+            <table class="datatable hover" id="table-data">
+                <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>Foto</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">Do something</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="modal-body">
+            <div id="buttons">
+                <button id="delete-user" class="btn btn-danger" style="width: 100%;">Delete</button>
+                <button id="update-user" class="btn btn-info" style="width: 100%; margin-top: 1em;">Update Bio</button>
+                <button id="update-password" class="btn btn-success" style="width: 100%; margin-top: 1em;">Update Password</button>
+            </div>
+        </div>
+        <div class="modal-footer" hidden>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+          <button type="button" class="btn btn-primary">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalUpdateBio" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="post" action="#" id="update-bio-form" enctype="multipart/form-data">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div id="update-bio">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input name="email" type="email" class="form-control" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Nama</label>
+                        <input name="name" type="text" class="form-control" id="name">
+                        
+                    </div>
+                    <div class="form-group">
+                        <label>Foto profil baru</label>
+                        <input name="profil_url" type="file" id="profil_url" accept="image/*" class="form-control">
+                    </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-primary" value="Save changes">
+        </div>
+      </div>
+    </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalUpdatePass" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="post" action="#" id="update-pass-form">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div id="update-bio">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input name="password" type="password" class="form-control" id="password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input name="confirm_password" type="password" class="form-control" id="confirm_password">
+                    </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-primary" value="Save changes">
+        </div>
+      </div>
+    </form>
+    </div>
+  </div>
+{% endblock %}
+    
+{% block script %}
+<script>
+    $(document).ready(function() {
+        var globalemail=''
+        var mData = ''
+        var oTable = $('.datatable').DataTable({
+            // ...
+            "processing": true,
+            "serverSide": true,
+            "ajax": "{% url 'order_list_json' %}"
+        });
+        // ...
+        
+        $('#table-data tbody').on('click', 'tr', function () {
+            var data = oTable.row(this).data()
+            console.log(data)
+            $("#modal").modal()
+            $('#modalLabel').text('Do something to '+data[0])
+            globalemail = data[1]
+            mData = data
+        } );
+
+        $('#modal').on('shown.bs.modal', function () {
+            // $('#myInput').trigger('focus')
+        })
+
+        $('#delete-user').click(function(){
+            $.ajax({
+                url: '/delete/',
+                type: 'POST',
+                dataType: 'JSON',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({'email': globalemail}),
+
+                success: function(json){
+                    alert(json.messages)
+                    location.reload()
+                },
+                error: function(xhr,errmsg,err){
+                    jError = xhr.responseJSON
+                    console.log(jError)
+                }
+            });
+        })
+
+        $('#update-user').click(function(){
+            $('#modal').modal('hide')
+            $('#email').val(mData[1])
+            $('#name').val(mData[0])
+            $('#modalUpdateBio').modal()
+
+            $('#update-bio-form').on('submit', function(event){
+                event.preventDefault()
+                var formData = new FormData(this)
+                formData.append('part', 'bio')
+                formData.append('id', mData[3])
+
+                $.ajax({
+                    url : "update/",
+                    type : "POST",
+                    data : formData,
+                    processData: false,
+                    contentType: false,
+
+                    success : function(json) {
+                        alert("Berhasil memperbarui")
+                        location.reload()
+                        $('#modalUpdateBio').modal('hide')
+                    },
+
+                    error : function(xhr,errmsg,err) {
+                        jError = xhr.responseJSON
+                        console.log(jError)
+                    }
+                });
+            })
+        })
+        $('#update-password').click(function(){
+            $('#modal').modal('hide')
+            $('#modalUpdatePass').modal()
+
+            $('#update-pass-form').on('submit', function(event){
+                event.preventDefault()
+                var formData = new FormData(this)
+                formData.append('part', 'pass')
+                formData.append('id', mData[3])
+
+                $.ajax({
+                    url : "update/",
+                    type : "POST",
+                    data : formData,
+                    processData: false,
+                    contentType: false,
+
+                    success : function(json) {
+                        alert("Berhasil memperbarui password");
+                        location.reload()
+                        $('#modalUpdatePass').modal('hide')
+                    },
+
+                    error : function(xhr,errmsg,err) {
+                        jError = xhr.responseJSON
+                        console.log(jError)
+                    }
+                });
+            })
+        })
+    });
+
+</script>
+{% endblock %}

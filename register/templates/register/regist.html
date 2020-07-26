@@ -1,0 +1,88 @@
+{% extends 'register/base.html' %}
+
+{% block content %}
+    <div class="col-4">
+        <div class="card">
+            <h4 class="card-header text-center">Register</h4>
+            <div class="card-block">
+                <form method="post" action="#" id="register-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input name="email" type="email" class="form-control">
+                        <div class="form-group has-danger">
+                            <div class="form-control-feedback" id="email"></div>
+                            </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input name="name" type="text" class="form-control">
+                        <div class="form-group has-danger">
+                            <div class="form-control-feedback" id="name"></div>
+                            </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input name="password" type="password" class="form-control">
+                        <div class="form-group has-danger">
+                            <div class="form-control-feedback" id="password"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input name="confirm_password" type="password" class="form-control">
+                        <div class="form-group has-danger">
+                            <div class="form-control-feedback" id="confirm_password"></div>
+                            </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Foto profil</label>
+                        <input name="profil_url" type="file" id="profil_url" accept="image/*" class="form-control">
+                        <div class="form-group has-danger">
+                            <div class="form-control-feedback"></div>
+                        </div>
+                    </div>
+                    <a href="/login" id="register">Login</a>
+                    <div class="mx-auto text-center">
+                        <input id="submit" type="submit" class="btn btn-primary" value="Create user">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $('#register-form').on('submit', function(event){
+            event.preventDefault();
+            var formData = new FormData(this)
+            $.ajax({
+                url : "register/",
+                type : "POST",
+                data : formData,
+                processData: false,
+                contentType: false,
+
+                // handle a successful response
+                success : function(json) {
+                    // $('#register-form').empty(); 
+                    alert("Berhasil membuat akun");
+                    location.replace('/login/')
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    // $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    //     " <a href='#' class='close'>&times;</a></div>");
+                    jError = xhr.responseJSON
+                    console.log(jError)
+                    // alert('')
+                    for (var key in jError){
+                        $(`#${key}`).text(jError[key])
+                    }
+                }
+            });
+        })
+    </script>
+{% endblock %}

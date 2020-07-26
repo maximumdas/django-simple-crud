@@ -1,0 +1,62 @@
+{% extends 'register/base.html' %}
+
+{% block content %}
+
+<div class="col-4">
+    <div class="card">
+        <h4 class="card-header text-center">Login</h4>
+        <div class="card-block">
+            <form method="post" action="#" id="login-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Email</label>
+                    <input name="email" type="email" id="email" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input name="password" type="password" id="password" class="form-control">
+                </div>
+                <a href="/" id="register">Register</a>
+                <div class="mx-auto text-center">
+                    <input type="submit" value="Login" class="btn btn-primary">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        $('#register').click(function(){
+            location.replace('/')
+        })
+        $('#login-form').on('submit', function(event){
+            event.preventDefault()
+            var payload = new FormData(this)
+            $.ajax({
+                url : "/login/",
+                type : "POST",
+                data : payload,
+                processData: false,
+                contentType: false,
+
+                // handle a successful response
+                success : function(json) {
+                    // $('#register-form').empty();
+                    alert(json.messages)
+                    location.replace('/users/')
+                },
+
+                // handle a non-successful response
+                error : function(xhr,errmsg,err) {
+                    // $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                    //     " <a href='#' class='close'>&times;</a></div>");
+                    jError = xhr.responseJSON
+                    alert(jError.messages)
+                }
+            })
+        })
+    </script>
+{% endblock %}
